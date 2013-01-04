@@ -76,7 +76,6 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-      println(i18nClassName)
         val shouldExtract = i18nClassName.isDefined && emptyOutputFileExists
         if (shouldExtract) {
           val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName.get)).tpe
