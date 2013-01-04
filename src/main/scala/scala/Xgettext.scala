@@ -17,7 +17,6 @@ class Xgettext(val global: Global) extends Plugin {
   val description = "This Scala compiler plugin extracts and creates gettext.pot file"
   val components  = List[PluginComponent](MapComponent, ReduceComponent)
 
-  val I18N_CLASS_NAME = "scala.I18n"
   val OUTPUT_FILE     = "i18n.pot"
   val HEADER          = """msgid ""
 msgstr ""
@@ -32,6 +31,7 @@ msgstr ""
 
 """
 
+  val i18nClassName         = System.getProperty("xgettext")
   val outputFile            = new File(OUTPUT_FILE)
   val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
   //                                        msgctxt         msgid   msgid_plural           source  line
@@ -51,8 +51,8 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-        if (emptyOutputFileExists) {
-          val i18nType = rootMirror.getClassByName(stringToTypeName(I18N_CLASS_NAME)).tpe
+        if (i18nClassName != null && emptyOutputFileExists) {
+          val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName)).tpe
           for (tree @ Apply(Select(x1, x2), list) <- unit.body) {
             if (x1.tpe <:< i18nType) {
               val methodName = x2.toString
