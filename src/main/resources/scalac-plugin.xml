@@ -1,0 +1,4 @@
+<plugin>
+  <name>scala-xgettext</name>
+  <classname>scala.Xgettext</classname>
+</plugin>
