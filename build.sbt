@@ -1,6 +1,6 @@
 organization := "tv.cntt"
 
-name := "scala-xgettext"
+name := "xgettext"
 
 version := "1.0-SNAPSHOT"
 

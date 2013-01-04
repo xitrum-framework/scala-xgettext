@@ -13,7 +13,7 @@ import nsc.plugins.PluginComponent
 class Xgettext(val global: Global) extends Plugin {
   import global._
 
-  val name        = "scala-xgettext"
+  val name        = "xgettext"
   val description = "This Scala compiler plugin extracts and creates gettext.pot file"
   val components  = List[PluginComponent](MapComponent, ReduceComponent)
 
@@ -31,19 +31,44 @@ msgstr ""
 
 """
 
-  val i18nClassName         = System.getProperty("xgettext")
+  // -P:xgettext:<i18n trait or class>
+  var i18nClassName: Option[String] = None
+
   val outputFile            = new File(OUTPUT_FILE)
   val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
-  //                                        msgctxt         msgid   msgid_plural           source  line
-  val msgToLines            = new MHashMap[(Option[String], String, Option[String]), MSet[(String, Int)]] with MultiMap[(Option[String], String, Option[String]), (String, Int)]
-  var reduced               = false
+
+  val msgToLines = new MHashMap[
+    (
+      Option[String],  // msgctxt
+      String,          // msgid
+      Option[String]   // msgid_plural
+    ),
+    MSet[(
+      String,          // source
+      Int              // line
+    )]
+  ] with MultiMap[
+    (
+      Option[String],
+      String,
+      Option[String]
+    ),
+    (String, Int)
+  ]
+
+  // Avoid running ReduceComponent multiple times
+  var reduced = false
+
+  override def processOptions(options: List[String], error: String => Unit) {
+    i18nClassName = Some(options.head)
+  }
 
   private object MapComponent extends PluginComponent {
     val global: Xgettext.this.global.type = Xgettext.this.global
 
     val runsAfter = List("refchecks")
 
-    val phaseName = "scala-xgettext-map"
+    val phaseName = "xgettext-map"
 
     def newPhase(_prev: Phase) = new MapPhase(_prev)
 
@@ -51,8 +76,10 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-        if (i18nClassName != null && emptyOutputFileExists) {
-          val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName)).tpe
+      println(i18nClassName)
+        val shouldExtract = i18nClassName.isDefined && emptyOutputFileExists
+        if (shouldExtract) {
+          val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName.get)).tpe
           for (tree @ Apply(Select(x1, x2), list) <- unit.body) {
             if (x1.tpe <:< i18nType) {
               val methodName = x2.toString
@@ -95,7 +122,7 @@ msgstr ""
 
     val runsAfter = List("jvm")
 
-    val phaseName = "scala-xgettext-reduce"
+    val phaseName = "xgettext-reduce"
 
     def newPhase(_prev: Phase) = new ReducePhase(_prev)
 
@@ -103,7 +130,8 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-        if (emptyOutputFileExists && !reduced) {
+        val shouldExtract = i18nClassName.isDefined && emptyOutputFileExists
+        if (shouldExtract && !reduced) {
           val builder = new StringBuilder(HEADER)
 
           for (((msgctxto, msgid, msgidPluralo), lines) <- msgToLines) {
