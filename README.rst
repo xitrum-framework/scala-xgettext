@@ -6,6 +6,9 @@ i18n strings in Scala source code files to Gettext .po file on compilation.
 More info on Scala compiler plugin:
 http://www.scala-lang.org/node/140
 
+Discussion group:
+https://groups.google.com/group/scala-xgettext
+
 Usage
 -----
 
