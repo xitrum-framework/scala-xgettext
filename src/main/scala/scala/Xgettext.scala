@@ -78,7 +78,10 @@ msgstr ""
       def apply(unit: CompilationUnit) {
         val shouldExtract = i18nClassName.isDefined && emptyOutputFileExists
         if (shouldExtract) {
-          val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName.get)).tpe
+          // Scala 2.10:
+          //val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName.get)).tpe
+          // Scala 2.11:
+          val i18nType = rootMirror.getClassByName(TypeName(i18nClassName.get)).tpe
           for (tree @ Apply(Select(x1, x2), list) <- unit.body) {
             if (x1.tpe <:< i18nType) {
               val methodName = x2.toString
