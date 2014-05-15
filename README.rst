@@ -17,7 +17,7 @@ Create I18n trait or class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You should have a trait or class
-(see `example <https://github.com/ngocdaothanh/xitrum/blob/master/src/main/scala/xitrum/I18n.scala>`_)
+(see `example <https://github.com/xitrum-framework/xitrum/blob/master/src/main/scala/xitrum/I18n.scala>`_)
 that has these i18n methods:
 
 ::
@@ -27,7 +27,7 @@ that has these i18n methods:
   tn(singular: String, plural: String, n: Long): String
   tcn(context: String, singular: String, plural: String, n: Long): String
 
-You can use `Scaposer <https://github.com/ngocdaothanh/scaposer>`_ to implement the above.
+You can use `Scaposer <https://github.com/xitrum-framework/scaposer>`_ to implement the above.
 
 Then in your Scala source code, use them like this:
 
@@ -58,10 +58,10 @@ If you use `SBT <http://www.scala-sbt.org/>`_, build.sbt should looks like this:
   scalacOptions += "-P:xgettext:xitrum.I18n"
   ...
 
-This plugin can be used by frameworks like `Xitrum <http://ngocdaothanh.github.com/xitrum/>`_
-to add i18n feature to them. For an example, see `this SBT project <https://github.com/ngocdaothanh/comy>`_.
+This plugin can be used by frameworks like `Xitrum <http://xitrum-framework.github.com/xitrum/>`_
+to add i18n feature to them. For an example, see `this SBT project <https://github.com/xitrum-framework/comy>`_.
 
 Load created .po file
 ~~~~~~~~~~~~~~~~~~~~~
 
-Use `Scaposer <https://github.com/ngocdaothanh/scaposer>`_.
+Use `Scaposer <https://github.com/xitrum-framework/scaposer>`_.
