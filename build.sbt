@@ -4,8 +4,8 @@ name := "xgettext"
 
 version := "1.1-SNAPSHOT"
 
-//scalaVersion := "2.10.3"
-scalaVersion := "2.11.0"
+//scalaVersion := "2.10.4"
+scalaVersion := "2.11.1"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
 
