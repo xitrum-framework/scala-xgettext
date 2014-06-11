@@ -58,7 +58,7 @@ If you use `SBT <http://www.scala-sbt.org/>`_, build.sbt should looks like this:
   scalacOptions += "-P:xgettext:xitrum.I18n"
   ...
 
-This plugin can be used by frameworks like `Xitrum <http://xitrum-framework.github.com/xitrum/>`_
+This plugin can be used by frameworks like `Xitrum <http://xitrum-framework.github.io/>`_
 to add i18n feature to them. For an example, see `this SBT project <https://github.com/xitrum-framework/comy>`_.
 
 Load created .po file
