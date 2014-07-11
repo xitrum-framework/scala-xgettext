@@ -2,7 +2,7 @@ organization := "tv.cntt"
 
 name := "xgettext"
 
-version := "1.1-SNAPSHOT"
+version := "1.2-SNAPSHOT"
 
 scalaVersion := "2.11.1"
 //scalaVersion := "2.10.4"
