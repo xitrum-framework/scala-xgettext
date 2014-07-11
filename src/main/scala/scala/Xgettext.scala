@@ -13,6 +13,19 @@ import nsc.plugins.PluginComponent
 class Xgettext(val global: Global) extends Plugin {
   import global._
 
+  type i18nKey = (
+    Option[String],  // msgctxt
+    String,          // msgid
+    Option[String]   // msgid_plural
+  )
+
+  type i18nValue = (
+    String,          // source
+    Int              // line
+  )
+
+  type i18nValues = MSet[i18nValue]
+
   val name        = "xgettext"
   val description = "This Scala compiler plugin extracts and creates gettext.pot file"
   val components  = List[PluginComponent](MapComponent, ReduceComponent)
@@ -37,24 +50,7 @@ msgstr ""
   val outputFile            = new File(OUTPUT_FILE)
   val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
 
-  val msgToLines = new MHashMap[
-    (
-      Option[String],  // msgctxt
-      String,          // msgid
-      Option[String]   // msgid_plural
-    ),
-    MSet[(
-      String,          // source
-      Int              // line
-    )]
-  ] with MultiMap[
-    (
-      Option[String],
-      String,
-      Option[String]
-    ),
-    (String, Int)
-  ]
+  val msgToLines = new MHashMap[i18nKey, i18nValues] with MultiMap[i18nKey, i18nValue]
 
   // Avoid running ReduceComponent multiple times
   var reduced = false
@@ -136,7 +132,10 @@ msgstr ""
         if (shouldExtract && !reduced) {
           val builder = new StringBuilder(HEADER)
 
-          for (((msgctxto, msgid, msgidPluralo), lines) <- msgToLines) {
+          // Sort so that it's easier too see diffs between versions of the .pot/.po file
+          val sorted = msgToLines.toSeq.sortBy { case (k, v) => k }
+
+          for (((msgctxto, msgid, msgidPluralo), lines) <- sorted) {
             for ((srcPath, lineNo) <- lines) {
               builder.append("#: " + srcPath + ":" + lineNo + "\n")
             }
