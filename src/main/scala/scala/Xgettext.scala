@@ -106,20 +106,20 @@ msgstr ""
               val line       = (relPath(pos.source.path), pos.line)
 
               if (methodName == i18n_t) {
-                val msgid = list(0).toString
+                val msgid = fixBackslashSingleQuote(list(0).toString)
                 msgToLines.addBinding((None, msgid, None), line)
               } else if (methodName == i18n_tn) {
-                val msgid       = list(0).toString
-                val msgidPlural = list(1).toString
+                val msgid       = fixBackslashSingleQuote(list(0).toString)
+                val msgidPlural = fixBackslashSingleQuote(list(1).toString)
                 msgToLines.addBinding((None, msgid, Some(msgidPlural)), line)
               } else if (methodName == i18n_tc) {
-                val msgctxt = list(0).toString
-                val msgid   = list(1).toString
+                val msgctxt = fixBackslashSingleQuote(list(0).toString)
+                val msgid   = fixBackslashSingleQuote(list(1).toString)
                 msgToLines.addBinding((Some(msgctxt), msgid, None), line)
               } else if (methodName == i18n_tcn) {
-                val msgctxt     = list(0).toString
-                val msgid       = list(1).toString
-                val msgidPlural = list(2).toString
+                val msgctxt     = fixBackslashSingleQuote(list(0).toString)
+                val msgid       = fixBackslashSingleQuote(list(1).toString)
+                val msgidPlural = fixBackslashSingleQuote(list(2).toString)
                 msgToLines.addBinding((Some(msgctxt), msgid, Some(msgidPlural)), line)
               }
             }
@@ -132,6 +132,17 @@ msgstr ""
         val relPath  = absPath.substring(curDir.length)
         val unixPath = relPath.replace("\\", "/")  // Windows uses '\' to separate
         "../../../.." + unixPath  // po files should be put in src/main/resources/i18n directory
+      }
+
+      /**
+       * t("Don't go") will be extracted as "Don\'t go"
+       * (including the surrounding double quotes).
+       *
+       * Poedit will report "invalid control sequence" for key "Don\'t go", so
+       * we should change it to just "Don't go".
+       */
+      private def fixBackslashSingleQuote(s: String): String = {
+        s.replaceAllLiterally("""\'""", "'")
       }
     }
   }
