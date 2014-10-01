@@ -2,7 +2,7 @@ organization := "tv.cntt"
 
 name := "xgettext"
 
-version := "1.2-SNAPSHOT"
+version := "1.3-SNAPSHOT"
 
 // In src/main/scala/scala/Xgettext.scala, see the lines that are marked with
 // "Scala 2.10" and "Scala 2.11".

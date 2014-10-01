@@ -1,3 +1,8 @@
+1.3:
+
+* `#5 <https://github.com/xitrum-framework/scala-xgettext/issues/5>`_
+  Allow multiple marker methods
+
 1.2:
 
 * `#3 <https://github.com/xitrum-framework/scala-xgettext/issues/3>`_

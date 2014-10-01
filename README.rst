@@ -21,7 +21,7 @@ Create I18n trait or class
 
 You should have a trait or class
 (see `example <https://github.com/xitrum-framework/xitrum/blob/master/src/main/scala/xitrum/I18n.scala>`_)
-that has these i18n methods:
+that has these i18n marker methods:
 
 ::
 
@@ -84,8 +84,8 @@ merge the .pot file to the .po file.
 Content of the .pot file is sorted by msgid, so that it's easier too see diffs
 between versions of the .pot/.po file.
 
-Configure i18n method names
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configure i18n marker method names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``t``, ``tn``, ``tc``, and ``tcn`` above are the defaults.
 
@@ -100,6 +100,22 @@ you can add options to Scala compiler like this:
   ).map("-P:xgettext:" + _)
 
 If you skip an option, its default value will be used.
+
+Multiple marker method names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Multiple marker methods for ``t`` can be configured like this:
+
+::
+
+  scalacOptions ++= Seq(
+    "xitrum.I18n", "t:tr", "t:notr"
+  ).map("-P:xgettext:" + _)
+
+Similar for ``tn``, ``tc``, and ``tcn``.
+
+With this feature you can, for example, create an i18n library that can display
+both original strings and translated strings.
 
 Load .po file
 ~~~~~~~~~~~~~

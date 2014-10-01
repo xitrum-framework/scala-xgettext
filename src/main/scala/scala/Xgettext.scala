@@ -46,10 +46,10 @@ msgstr ""
 
   // -P:xgettext:<i18n trait or class>[,t=xxx,tn=xxx,tc=xxx,tcn=xxx]
   var i18n_class = ""
-  var i18n_t     = "t"
-  var i18n_tn    = "tn"
-  var i18n_tc    = "tc"
-  var i18n_tcn   = "tcn"
+  var i18n_t     = Seq.empty[String]
+  var i18n_tn    = Seq.empty[String]
+  var i18n_tc    = Seq.empty[String]
+  var i18n_tcn   = Seq.empty[String]
 
   val outputFile            = new File(OUTPUT_FILE)
   val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
@@ -62,20 +62,25 @@ msgstr ""
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
       if (option.startsWith("t:"))
-        i18n_t = option.stripPrefix("t:")
+        i18n_t   +:= option.stripPrefix("t:")
 
       else if (option.startsWith("tn:"))
-        i18n_tn = option.stripPrefix("tn:")
+        i18n_tn  +:= option.stripPrefix("tn:")
 
       else if (option.startsWith("tc:"))
-        i18n_tc = option.stripPrefix("tc:")
+        i18n_tc  +:= option.stripPrefix("tc:")
 
       else if (option.startsWith("tcn:"))
-        i18n_tcn = option.stripPrefix("tcn:")
+        i18n_tcn +:= option.stripPrefix("tcn:")
 
       else
         i18n_class = option
     }
+
+    if (i18n_t.isEmpty)   i18n_t   = Seq("t")
+    if (i18n_tn.isEmpty)  i18n_tn  = Seq("tn")
+    if (i18n_tc.isEmpty)  i18n_tc  = Seq("tc")
+    if (i18n_tcn.isEmpty) i18n_tcn = Seq("tcn")
   }
 
   private object MapComponent extends PluginComponent {
@@ -105,18 +110,18 @@ msgstr ""
               val pos        = tree.pos  // scala.tools.nsc.util.OffsetPosition
               val line       = (relPath(pos.source.path), pos.line)
 
-              if (methodName == i18n_t) {
+              if (i18n_t.contains(methodName)) {
                 val msgid = fixBackslashSingleQuote(list(0).toString)
                 msgToLines.addBinding((None, msgid, None), line)
-              } else if (methodName == i18n_tn) {
+              } else if (i18n_tn.contains(methodName)) {
                 val msgid       = fixBackslashSingleQuote(list(0).toString)
                 val msgidPlural = fixBackslashSingleQuote(list(1).toString)
                 msgToLines.addBinding((None, msgid, Some(msgidPlural)), line)
-              } else if (methodName == i18n_tc) {
+              } else if (i18n_tc.contains(methodName)) {
                 val msgctxt = fixBackslashSingleQuote(list(0).toString)
                 val msgid   = fixBackslashSingleQuote(list(1).toString)
                 msgToLines.addBinding((Some(msgctxt), msgid, None), line)
-              } else if (methodName == i18n_tcn) {
+              } else if (i18n_tcn.contains(methodName)) {
                 val msgctxt     = fixBackslashSingleQuote(list(0).toString)
                 val msgid       = fixBackslashSingleQuote(list(1).toString)
                 val msgidPlural = fixBackslashSingleQuote(list(2).toString)
@@ -166,10 +171,11 @@ msgstr ""
 
           // Sort by key (msgctxto, msgid, msgidPluralo)
           // so that it's easier too see diffs between versions of the .pot/.po file
-          val sorted = msgToLines.toSeq.sortBy { case (k, v) => k }
+          val sortedMsgToLines = msgToLines.toSeq.sortBy { case (k, v) => k }
 
-          for (((msgctxto, msgid, msgidPluralo), lines) <- sorted) {
-            for ((srcPath, lineNo) <- lines) {
+          for (((msgctxto, msgid, msgidPluralo), lines) <- sortedMsgToLines) {
+            val sortedLines = lines.toSeq.sorted
+            for ((srcPath, lineNo) <- sortedLines) {
               builder.append("#: " + srcPath + ":" + lineNo + "\n")
             }
 
