@@ -4,10 +4,12 @@ name := "xgettext"
 
 version := "1.2-SNAPSHOT"
 
+// In src/main/scala/scala/Xgettext.scala, see the lines that are marked with
+// "Scala 2.10" and "Scala 2.11".
+//
+// When doing publish-signed, change the version below and those line accordingly.
 scalaVersion := "2.11.1"
 //scalaVersion := "2.10.4"
-
-crossScalaVersions := Seq("2.11.1", "2.10.4")
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
 
