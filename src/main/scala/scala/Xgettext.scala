@@ -44,8 +44,12 @@ msgstr ""
 
 """
 
-  // -P:xgettext:<i18n trait or class>
-  var i18nClassName: Option[String] = None
+  // -P:xgettext:<i18n trait or class>[,t=xxx,tn=xxx,tc=xxx,tcn=xxx]
+  var i18n_class = ""
+  var i18n_t     = "t"
+  var i18n_tn    = "tn"
+  var i18n_tc    = "tc"
+  var i18n_tcn   = "tcn"
 
   val outputFile            = new File(OUTPUT_FILE)
   val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
@@ -56,7 +60,24 @@ msgstr ""
   var reduced = false
 
   override def processOptions(options: List[String], error: String => Unit) {
-    i18nClassName = Some(options.head)
+    for (option <- options) {
+      if (option.startsWith("t:"))
+        i18n_t = option.stripPrefix("t:")
+
+      else if (option.startsWith("tn:"))
+        i18n_tn = option.stripPrefix("tn:")
+
+      else if (option.startsWith("tc:"))
+        i18n_tc = option.stripPrefix("tc:")
+
+      else if (option.startsWith("tcn:"))
+        i18n_tcn = option.stripPrefix("tcn:")
+
+      else
+        i18n_class = option
+    }
+
+    println(i18n_class, i18n_t, i18n_tn, i18n_tc, i18n_tcn)
   }
 
   private object MapComponent extends PluginComponent {
@@ -72,13 +93,13 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-        val shouldExtract = i18nClassName.isDefined && emptyOutputFileExists
+        val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
         if (shouldExtract) {
           // Scala 2.10:
-          //val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName.get)).tpe
+          //val i18nType = rootMirror.getClassByName(stringToTypeName(i18n_class)).tpe
 
           // Scala 2.11:
-          val i18nType = rootMirror.getClassByName(TypeName(i18nClassName.get)).tpe
+          val i18nType = rootMirror.getClassByName(TypeName(i18n_class)).tpe
 
           for (tree @ Apply(Select(x1, x2), list) <- unit.body) {
             if (x1.tpe <:< i18nType) {
@@ -86,18 +107,18 @@ msgstr ""
               val pos        = tree.pos  // scala.tools.nsc.util.OffsetPosition
               val line       = (relPath(pos.source.path), pos.line)
 
-              if (methodName == "t") {
+              if (methodName == i18n_t) {
                 val msgid = list(0).toString
                 msgToLines.addBinding((None, msgid, None), line)
-              } else if (methodName == "tc") {
-                val msgctxt = list(0).toString
-                val msgid   = list(1).toString
-                msgToLines.addBinding((Some(msgctxt), msgid, None), line)
-              } else if (methodName == "tn") {
+              } else if (methodName == i18n_tn) {
                 val msgid       = list(0).toString
                 val msgidPlural = list(1).toString
                 msgToLines.addBinding((None, msgid, Some(msgidPlural)), line)
-              } else if (methodName == "tcn") {
+              } else if (methodName == i18n_tc) {
+                val msgctxt = list(0).toString
+                val msgid   = list(1).toString
+                msgToLines.addBinding((Some(msgctxt), msgid, None), line)
+              } else if (methodName == i18n_tcn) {
                 val msgctxt     = list(0).toString
                 val msgid       = list(1).toString
                 val msgidPlural = list(2).toString
@@ -130,7 +151,7 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-        val shouldExtract = i18nClassName.isDefined && emptyOutputFileExists
+        val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
         if (shouldExtract && !reduced) {
           val builder = new StringBuilder(HEADER)
 

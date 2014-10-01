@@ -26,9 +26,23 @@ that has these i18n methods:
 ::
 
   t(singular: String): String
-  tc(context: String, singular: String): String
   tn(singular: String, plural: String, n: Long): String
+
+  tc(context: String, singular: String): String
   tcn(context: String, singular: String, plural: String, n: Long): String
+
+The methods can also be:
+
+::
+
+  t(singular: String, params: Any*): String
+  tn(singular: String, plural: String, n: Long, params: Any*): String
+
+  tc(context: String, singular: String, params: Any*): String
+  tcn(context: String, singular: String, plural: String, n: Long, params: Any*): String
+
+That is, only the first arguments are required, arguments after those
+(like `params` above) are ignored.
 
 You can use `Scaposer <https://github.com/xitrum-framework/scaposer>`_ to implement the above.
 
@@ -56,7 +70,7 @@ If you use `SBT <http://www.scala-sbt.org/>`_, build.sbt should look like this:
   ...
   autoCompilerPlugins := true
 
-  addCompilerPlugin("tv.cntt" %% "xgettext" % "1.1")
+  addCompilerPlugin("tv.cntt" %% "xgettext" % "1.2")
 
   scalacOptions += "-P:xgettext:xitrum.I18n"
   ...
@@ -67,8 +81,23 @@ Copy the .pot file to .po file and translate it to the language if want
 If you have existing .po file, use tools like `Poedit <http://poedit.net/>`_ to
 merge the .pot file to the .po file.
 
-Content of the .pot file is sorted (by msgid), so that it's easier too see diffs
+Content of the .pot file is sorted by msgid, so that it's easier too see diffs
 between versions of the .pot/.po file.
+
+Configure i18n method names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``t``, ``tn``, ``tc``, and ``tcn`` above are the defaults.
+
+If you want to use other names, for example if you want to change them to
+``tr``, ``trn``, ``trc``, and ``trcn`` respectively,
+you can add options to Scala compiler like this:
+
+::
+
+  scalacOptions ++= Seq("xitrum.I18n", "t:tr", "tn:trn", "tc:trc", "tcn:trcn").map("-P:xgettext:" + _)
+
+If you skip an option, its default value will be used.
 
 Load .po file
 ~~~~~~~~~~~~~
