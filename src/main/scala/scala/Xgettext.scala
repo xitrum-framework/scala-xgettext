@@ -76,8 +76,10 @@ msgstr ""
         if (shouldExtract) {
           // Scala 2.10:
           //val i18nType = rootMirror.getClassByName(stringToTypeName(i18nClassName.get)).tpe
+
           // Scala 2.11:
           val i18nType = rootMirror.getClassByName(TypeName(i18nClassName.get)).tpe
+
           for (tree @ Apply(Select(x1, x2), list) <- unit.body) {
             if (x1.tpe <:< i18nType) {
               val methodName = x2.toString
@@ -132,7 +134,8 @@ msgstr ""
         if (shouldExtract && !reduced) {
           val builder = new StringBuilder(HEADER)
 
-          // Sort so that it's easier too see diffs between versions of the .pot/.po file
+          // Sort by key (msgctxto, msgid, msgidPluralo)
+          // so that it's easier too see diffs between versions of the .pot/.po file
           val sorted = msgToLines.toSeq.sortBy { case (k, v) => k }
 
           for (((msgctxto, msgid, msgidPluralo), lines) <- sorted) {
