@@ -95,7 +95,9 @@ you can add options to Scala compiler like this:
 
 ::
 
-  scalacOptions ++= Seq("xitrum.I18n", "t:tr", "tn:trn", "tc:trc", "tcn:trcn").map("-P:xgettext:" + _)
+  scalacOptions ++= Seq(
+    "xitrum.I18n", "t:tr", "tn:trn", "tc:trc", "tcn:trcn"
+  ).map("-P:xgettext:" + _)
 
 If you skip an option, its default value will be used.
 
