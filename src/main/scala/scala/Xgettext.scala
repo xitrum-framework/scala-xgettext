@@ -76,8 +76,6 @@ msgstr ""
       else
         i18n_class = option
     }
-
-    println(i18n_class, i18n_t, i18n_tn, i18n_tc, i18n_tcn)
   }
 
   private object MapComponent extends PluginComponent {
