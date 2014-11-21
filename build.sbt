@@ -8,7 +8,7 @@ version := "1.4-SNAPSHOT"
 // "Scala 2.10" and "Scala 2.11".
 //
 // When doing publish-signed, change the version below and those line accordingly.
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.4"
 //scalaVersion := "2.10.4"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
