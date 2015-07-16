@@ -2,13 +2,16 @@
 
 This is a Scala 2.10 and 2.11 compiler plugin that acts like GNU ``xgettext``
 command to extract i18n strings in Scala source code files to `Gettext <http://en.wikipedia.org/wiki/Gettext>`_
-.po file on compilation.
+.po file, when you compile the Scala source code files.
 
 More info on Scala compiler plugin:
 http://www.scala-lang.org/node/140
 
 Discussion group:
 https://groups.google.com/group/scala-xgettext
+
+For `Play <https://www.playframework.com/>`_:
+https://github.com/georgeOsdDev/play-xgettext
 
 Usage
 -----
@@ -19,9 +22,8 @@ to add i18n feature to them. For an example, see `this SBT project <https://gith
 Create I18n trait or class
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You should have a trait or class
-(see `example <https://github.com/xitrum-framework/xitrum/blob/master/src/main/scala/xitrum/I18n.scala>`_)
-that has these i18n marker methods:
+In your Scala source code, you need to mark the strings you want to extract by
+using a trait or class that has these method signatures:
 
 ::
 
@@ -41,10 +43,12 @@ The methods can also be:
   tc(context: String, singular: String, params: Any*): String
   tcn(context: String, singular: String, plural: String, n: Long, params: Any*): String
 
-That is, only the first arguments are required, arguments after those
-(like `params` above) are ignored.
+That is, only the first arguments (1 first argument for ``t``, 3 first arguments
+for ``tn`` etc.) are required, all the following arguments are ignored
+(like `params` above).
 
-You can use `Scaposer <https://github.com/xitrum-framework/scaposer>`_ to implement the above.
+You can use `Scaposer <https://github.com/xitrum-framework/scaposer>`_ to
+implement the methods above. See `example <https://github.com/xitrum-framework/xitrum/blob/master/src/main/scala/xitrum/I18n.scala>`_.
 
 Then in your Scala source code, use them like this:
 
@@ -57,11 +61,11 @@ Extract i18n strings to .pot file
 
 To extract i18n strings like "Hello World" in the above snippet:
 
-* Clean your Scala project to force the recompilation of all files (see below).
+* Clean your Scala project to force the recompilation of all Scala source code files.
 * Create an empty i18n.pot file in the current working directory. It will be
   filled with i18n string resources extracted from compiled Scala source code files.
 * Compile your Scala project with ``-P:xgettext:<i18n trait or class>`` option.
-  (Example: ``-P:xgettext:xitrum.I18n``)
+  Example: ``-P:xgettext:xitrum.I18n``.
 
 If you use `SBT <http://www.scala-sbt.org/>`_, build.sbt should look like this:
 
@@ -69,17 +73,16 @@ If you use `SBT <http://www.scala-sbt.org/>`_, build.sbt should look like this:
 
   ...
   autoCompilerPlugins := true
-
   addCompilerPlugin("tv.cntt" %% "xgettext" % "1.3")
-
   scalacOptions += "-P:xgettext:xitrum.I18n"
   ...
 
-Copy the .pot file to .po file and translate it to the language if want
-("t" in .pot means "template").
+Copy or rename the .pot file to a .po file, and translate the strings in it to
+the language if want. "t" in ".pot" means "template".
 
-If you have existing .po file, use tools like `Poedit <http://poedit.net/>`_ to
-merge the .pot file to the .po file.
+You can use plain text editor to edit the .po file, or you can use
+`Poedit <http://poedit.net/>`_. Poedit is very convenient, it can merge new .pot
+file to existing translated .po file.
 
 Content of the .pot file is sorted by msgid, so that it's easier too see diffs
 between versions of the .pot/.po file.
@@ -89,9 +92,8 @@ Configure i18n marker method names
 
 ``t``, ``tn``, ``tc``, and ``tcn`` above are the defaults.
 
-If you want to use other names, for example if you want to change them to
-``tr``, ``trn``, ``trc``, and ``trcn`` respectively,
-you can add options to Scala compiler like this:
+If you want to use other names, you can change them to, for example,
+``tr``, ``trn``, ``trc``, and ``trcn``, by adding options to Scala compiler:
 
 ::
 
