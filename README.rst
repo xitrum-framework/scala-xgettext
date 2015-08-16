@@ -7,6 +7,9 @@ command to extract i18n strings in Scala source code files to `Gettext <http://e
 More info on Scala compiler plugin:
 http://www.scala-lang.org/node/140
 
+Presentation:
+`I18nize Scala programs à la gettext <http://www.slideshare.net/ngocdaothanh/i18nize-scala-program-a-la-gettext>`_
+
 Discussion group:
 https://groups.google.com/group/scala-xgettext
 
