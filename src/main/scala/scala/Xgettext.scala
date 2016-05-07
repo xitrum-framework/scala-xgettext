@@ -10,7 +10,7 @@ import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
 // http://www.scala-lang.org/node/140
-class Xgettext(val global: Global) extends Plugin {
+class Xgettext(val global: Global) extends Plugin with ScalaVersionAdapter {
   import global._
 
   type i18nKey = (
@@ -98,11 +98,7 @@ msgstr ""
       def apply(unit: CompilationUnit) {
         val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
         if (shouldExtract) {
-          // Scala 2.10:
-          //val i18nType = rootMirror.getClassByName(stringToTypeName(i18n_class)).tpe
-
-          // Scala 2.11:
-          val i18nType = rootMirror.getClassByName(TypeName(i18n_class)).tpe
+          val i18nType = getTypeFor(i18n_class)
 
           for (tree @ Apply(Select(x1, x2), list) <- unit.body) {
             if (x1.tpe <:< i18nType) {
