@@ -1,14 +1,9 @@
 organization := "tv.cntt"
+name         := "xgettext"
+version      := "1.4-SNAPSHOT"
 
-name := "xgettext"
-
-version := "1.4-SNAPSHOT"
-
-crossScalaVersions := Seq("2.10.4", "2.10.5", "2.10.6", "2.11.6", "2.11.7", "2.11.8")
-
-crossVersion := CrossVersion.full
-
-scalaVersion := "2.11.8"
+crossScalaVersions := Seq("2.10.6", "2.11.8")
+scalaVersion       := "2.11.8"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
 
