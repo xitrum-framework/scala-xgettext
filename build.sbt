@@ -4,12 +4,11 @@ name := "xgettext"
 
 version := "1.4-SNAPSHOT"
 
-// In src/main/scala/scala/Xgettext.scala, see the lines that are marked with
-// "Scala 2.10" and "Scala 2.11".
-//
-// When doing publish-signed, change the version below and those line accordingly.
-scalaVersion := "2.11.4"
-//scalaVersion := "2.10.4"
+crossScalaVersions := Seq("2.10.4", "2.10.5", "2.10.6", "2.11.6", "2.11.7", "2.11.8")
+
+crossVersion := CrossVersion.full
+
+scalaVersion := "2.11.8"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
 
@@ -19,6 +18,9 @@ scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
 // java.lang.UnsupportedClassVersionError: Unsupported major.minor version 51.0
 javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
 
-libraryDependencies <+= scalaVersion { sv =>
-  "org.scala-lang" % "scala-compiler" % sv
-}
+libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
+
+unmanagedSourceDirectories in Compile += baseDirectory.value / (scalaBinaryVersion.value match {
+  case "2.10" => "src/main/scala-2_10"
+  case _      => "src/main/scala-2_11"
+})
