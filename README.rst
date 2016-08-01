@@ -58,6 +58,17 @@ Then in your Scala source code, use them like this:
 ::
 
   t("Hello World")
+  String.format(t("Hello %s"), name)
+
+If you have more than one placeholder:
+
+::
+
+  // 1$ and 2$ are placeholders
+  String.format(t("%1$s says hello to %2$s, then %2$s says hello back to %1$s"), name1, name2)
+
+  // {0} and {1} are placeholders
+  java.text.MessageFormat.format(t("{0} says hello to {1}, then {1} says hello back to {0}"), name1, name2)
 
 Extract i18n strings to .pot file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
