@@ -40,11 +40,11 @@ The methods can also be:
 
 ::
 
-  t(singular: String, params: Any*): String
-  tn(singular: String, plural: String, n: Long, params: Any*): String
+  t(singular: String, args: Any*): String
+  tn(singular: String, plural: String, n: Long, args: Any*): String
 
-  tc(context: String, singular: String, params: Any*): String
-  tcn(context: String, singular: String, plural: String, n: Long, params: Any*): String
+  tc(context: String, singular: String, args: Any*): String
+  tcn(context: String, singular: String, plural: String, n: Long, args: Any*): String
 
 That is, only the first arguments (1 first argument for ``t``, 3 first arguments
 for ``tn`` etc.) are required, all the following arguments are ignored
@@ -58,17 +58,20 @@ Then in your Scala source code, use them like this:
 ::
 
   t("Hello World")
-  String.format(t("Hello %s"), name)
+  t("Hello %s").format("World")
+
+  t("%,.3f").format(1234.5678)                                // => 1,234.568
+  t("%,.3f").formatLocal(java.util.Locale.FRANCE, 1234.5678)  // => 1 234,568
 
 If you have more than one placeholder:
 
 ::
 
   // 1$ and 2$ are placeholders
-  String.format(t("%1$s says hello to %2$s, then %2$s says hello back to %1$s"), name1, name2)
+  t("%1$s says hello to %2$s, then %2$s says hello back to %1$s").format("Bill", "Hillary")
 
   // {0} and {1} are placeholders
-  java.text.MessageFormat.format(t("{0} says hello to {1}, then {1} says hello back to {0}"), name1, name2)
+  java.text.MessageFormat.format(t("{0} says hello to {1}, then {1} says hello back to {0}"), "Bill", "Hillary")
 
 Extract i18n strings to .pot file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
