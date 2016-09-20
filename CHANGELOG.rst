@@ -1,3 +1,8 @@
+1.4:
+
+* `#10 <https://github.com/xitrum-framework/scala-xgettext/pull/10>`_
+  Fix wrong pot file generation for plural forms
+
 1.3:
 
 * `#5 <https://github.com/xitrum-framework/scala-xgettext/issues/5>`_

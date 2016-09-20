@@ -90,7 +90,7 @@ If you use `SBT <http://www.scala-sbt.org/>`_, build.sbt should look like this:
 
   ...
   autoCompilerPlugins := true
-  addCompilerPlugin("tv.cntt" %% "xgettext" % "1.3")
+  addCompilerPlugin("tv.cntt" %% "xgettext" % "1.4")
   scalacOptions += "-P:xgettext:xitrum.I18n"
   ...
 
