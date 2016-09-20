@@ -177,8 +177,10 @@ msgstr ""
 
             if (msgctxto.isDefined) builder.append("msgctxt " + msgctxto.get + "\n")
             builder.append("msgid " + msgid + "\n")
-            if (msgidPluralo.isDefined) builder.append("msgid_plural " + msgidPluralo.get + "\n")
-            builder.append("msgstr \"\"" + "\n\n")
+            msgidPluralo.map { msgidPlural =>
+              builder.append(s"msgid_plural ${msgidPlural}\n")
+              builder.append("msgstr[0] \"\"" + "\n\n")
+            }.getOrElse(builder.append("msgstr \"\"" + "\n\n"))
           }
 
           val out = new BufferedWriter(new FileWriter(outputFile))
