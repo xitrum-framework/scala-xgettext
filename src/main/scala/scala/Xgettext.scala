@@ -30,7 +30,6 @@ class Xgettext(val global: Global) extends Plugin with ScalaVersionAdapter {
   val description = "This Scala compiler plugin extracts and creates gettext.pot file"
   val components  = List[PluginComponent](MapComponent, ReduceComponent)
 
-  val OUTPUT_FILE     = "i18n.pot"
   val HEADER          = """msgid ""
 msgstr ""
 "Project-Id-Version: \n"
@@ -50,9 +49,7 @@ msgstr ""
   var i18n_tn    = Seq.empty[String]
   var i18n_tc    = Seq.empty[String]
   var i18n_tcn   = Seq.empty[String]
-
-  val outputFile            = new File(OUTPUT_FILE)
-  val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
+  var i18n_outf       = Seq.empty[String]
 
   val msgToLines = new MHashMap[i18nKey, i18nValues] with MultiMap[i18nKey, i18nValue]
 
@@ -73,14 +70,18 @@ msgstr ""
       else if (option.startsWith("tcn:"))
         i18n_tcn +:= option.stripPrefix("tcn:")
 
+      else if (option.startsWith("outf:"))
+        i18n_outf +:= option.stripPrefix("outf:")
+
       else
         i18n_class = option
     }
 
-    if (i18n_t.isEmpty)   i18n_t   = Seq("t")
-    if (i18n_tn.isEmpty)  i18n_tn  = Seq("tn")
-    if (i18n_tc.isEmpty)  i18n_tc  = Seq("tc")
-    if (i18n_tcn.isEmpty) i18n_tcn = Seq("tcn")
+    if (i18n_t.isEmpty)    i18n_t    = Seq("t")
+    if (i18n_tn.isEmpty)   i18n_tn   = Seq("tn")
+    if (i18n_tc.isEmpty)   i18n_tc   = Seq("tc")
+    if (i18n_tcn.isEmpty)  i18n_tcn  = Seq("tcn")
+    if (i18n_outf.isEmpty) i18n_outf = Seq("i18n.pot")
   }
 
   private object MapComponent extends PluginComponent {
@@ -96,7 +97,7 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-        val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
+        val shouldExtract = !i18n_class.isEmpty
         if (shouldExtract) {
           val i18nType = getTypeFor(i18n_class)
 
@@ -151,7 +152,7 @@ msgstr ""
   private object ReduceComponent extends PluginComponent {
     val global: Xgettext.this.global.type = Xgettext.this.global
 
-    val runsAfter = List("jvm")
+    val runsAfter = List("icode")
 
     val phaseName = "xgettext-reduce"
 
@@ -161,7 +162,7 @@ msgstr ""
       override def name = phaseName
 
       def apply(unit: CompilationUnit) {
-        val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
+        val shouldExtract = !i18n_class.isEmpty
         if (shouldExtract && !reduced) {
           val builder = new StringBuilder(HEADER)
 
@@ -183,10 +184,10 @@ msgstr ""
             }.getOrElse(builder.append("msgstr \"\"" + "\n\n"))
           }
 
-          val out = new BufferedWriter(new FileWriter(outputFile))
+          val out = new BufferedWriter(new FileWriter(new File(i18n_outf.mkString)))
           out.write(builder.toString)
           out.close()
-          println(OUTPUT_FILE + " created")
+          println(i18n_outf + " created")
 
           reduced = true
         }
