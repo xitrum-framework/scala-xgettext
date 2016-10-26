@@ -52,7 +52,7 @@ object PluralForms {
     SIX_FORMS ->
       List("ar")
     )
-  val LangToForm = ToLang.flatMap {
+  val LangToForm: Map[String, String] = ToLang.flatMap {
     case (form, langs) => langs.map( _ -> form)
   }
 
