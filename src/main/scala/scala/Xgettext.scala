@@ -187,7 +187,7 @@ msgstr ""
           val out = new BufferedWriter(new FileWriter(new File(i18n_outf.mkString)))
           out.write(builder.toString)
           out.close()
-          println(i18n_outf + " created")
+          println(i18n_outf.mkString + " created")
 
           reduced = true
         }
