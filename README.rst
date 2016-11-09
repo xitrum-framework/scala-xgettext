@@ -136,6 +136,24 @@ Similar for ``tn``, ``tc``, and ``tcn``.
 With this feature you can, for example, create an i18n library that can display
 both original strings and translated strings.
 
+Explicitly specifying the plural forms for the template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some translation software require the plural forms formula used in the template
+to be explicitly stated.
+
+::
+
+  scalacOptions ++= "-P:xgettext:sourceLang:en"
+  //or
+  scalacOptions ++= "-P:xgettext:rawPluralForm:<nplurals=#; formula>"
+
+Using one of these options will cause the template to have a Plural-Forms header.
+Many languages are supported, but see ``src/main/scala/scala/PluralForms.scala``
+for all of the languages supported and examples of the common formulas.
+
+Omitting this option will omit a Plural-Forms header from the template output.
+
 Load .po file
 ~~~~~~~~~~~~~
 
