@@ -41,7 +41,6 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-
 """
 
   // -P:xgettext:<i18n trait or class>[,t=xxx,tn=xxx,tc=xxx,tcn=xxx]
@@ -50,6 +49,8 @@ msgstr ""
   var i18n_tn    = Seq.empty[String]
   var i18n_tc    = Seq.empty[String]
   var i18n_tcn   = Seq.empty[String]
+  var rawPluralForm: Option[String] = None
+  var sourceLang: Option[String] = None
 
   val outputFile            = new File(OUTPUT_FILE)
   val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
@@ -73,6 +74,12 @@ msgstr ""
       else if (option.startsWith("tcn:"))
         i18n_tcn +:= option.stripPrefix("tcn:")
 
+      else if (option.startsWith("sourceLang:"))
+        sourceLang = Option(option.stripPrefix("sourceLang:"))
+
+      else if (option.startsWith("rawPluralForm:"))
+        rawPluralForm = Option(option.stripPrefix("rawPluralForm:"))
+
       else
         i18n_class = option
     }
@@ -81,6 +88,15 @@ msgstr ""
     if (i18n_tn.isEmpty)  i18n_tn  = Seq("tn")
     if (i18n_tc.isEmpty)  i18n_tc  = Seq("tc")
     if (i18n_tcn.isEmpty) i18n_tcn = Seq("tcn")
+    if (rawPluralForm.isEmpty) rawPluralForm =
+      sourceLang.map(lang => PluralForms.LangToForm.getOrElse(lang,
+        {
+          val errorMessage = s"sourceLang '$lang' unknown to $name. Supply $name:rawPluralForm property instead."
+          println(errorMessage)
+          throw new NoSuchElementException(errorMessage)
+        }
+      ))
+
   }
 
   private object MapComponent extends PluginComponent {
@@ -160,10 +176,16 @@ msgstr ""
     class ReducePhase(prev: Phase) extends StdPhase(prev) {
       override def name = phaseName
 
+      def preparePluralForms(pluralForm: String) = s""""Plural-Forms: $pluralForm\\n""""
+
       def apply(unit: CompilationUnit) {
         val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
         if (shouldExtract && !reduced) {
           val builder = new StringBuilder(HEADER)
+
+          rawPluralForm.map(pluralForm => builder.append(preparePluralForms(pluralForm)))
+
+          builder.append("\n\n")
 
           // Sort by key (msgctxto, msgid, msgidPluralo)
           // so that it's easier too see diffs between versions of the .pot/.po file
