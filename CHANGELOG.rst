@@ -1,3 +1,9 @@
+1.5.0:
+
+* `#17 <https://github.com/xitrum-framework/scala-xgettext/pull/17>`_
+  Throw exception if the arguments singular, plural, and context are not literal constant string
+* Support Scala 2.12
+
 1.4:
 
 * `#10 <https://github.com/xitrum-framework/scala-xgettext/pull/10>`_

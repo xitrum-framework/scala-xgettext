@@ -1,7 +1,7 @@
 package scala
 
 import java.io.{BufferedWriter, File, FileWriter}
-import scala.collection.mutable.{HashMap => MHashMap, MultiMap, Set => MSet}
+import scala.collection.mutable
 
 import scala.tools.nsc
 import nsc.Global
@@ -13,25 +13,25 @@ import nsc.plugins.PluginComponent
 class Xgettext(val global: Global) extends Plugin with ScalaVersionAdapter {
   import global._
 
-  type i18nKey = (
+  private type i18nKey = (
     Option[String],  // msgctxt
     String,          // msgid
     Option[String]   // msgid_plural
   )
 
-  type i18nValue = (
+  private type i18nValue = (
     String,          // source
     Int              // line
   )
 
-  type i18nValues = MSet[i18nValue]
+  private type i18nValues = mutable.Set[i18nValue]
 
-  val name        = "xgettext"
-  val description = "This Scala compiler plugin extracts and creates gettext.pot file"
-  val components  = List[PluginComponent](MapComponent, ReduceComponent)
+  override val name        = "xgettext"
+  override val description = "This Scala compiler plugin extracts and creates gettext.pot file"
+  override val components: List[PluginComponent] = List[PluginComponent](MapComponent, ReduceComponent)
 
-  val OUTPUT_FILE     = "i18n.pot"
-  val HEADER          = """msgid ""
+  private val OUTPUT_FILE = "i18n.pot"
+  private val HEADER      = """msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
@@ -44,21 +44,23 @@ msgstr ""
 """
 
   // -P:xgettext:<i18n trait or class>[,t=xxx,tn=xxx,tc=xxx,tcn=xxx]
-  var i18n_class = ""
-  var i18n_t     = Seq.empty[String]
-  var i18n_tn    = Seq.empty[String]
-  var i18n_tc    = Seq.empty[String]
-  var i18n_tcn   = Seq.empty[String]
-  var rawPluralForm: Option[String] = None
-  var sourceLang: Option[String] = None
+  private var i18n_class = ""
+  private var i18n_t     = Seq.empty[String]
+  private var i18n_tn    = Seq.empty[String]
+  private var i18n_tc    = Seq.empty[String]
+  private var i18n_tcn   = Seq.empty[String]
 
-  val outputFile            = new File(OUTPUT_FILE)
-  val emptyOutputFileExists = outputFile.exists && outputFile.isFile && outputFile.length == 0
+  private var rawPluralForm: Option[String] = None
+  private var sourceLang:    Option[String] = None
 
-  val msgToLines = new MHashMap[i18nKey, i18nValues] with MultiMap[i18nKey, i18nValue]
+  // Only enable this plugin if the output file is empty; to avoid increasing Scala compilation time
+  private val outputFile    = new File(OUTPUT_FILE)
+  private val pluginEnabled = outputFile.exists && outputFile.isFile && outputFile.length == 0
+
+  private val msgToLines = new mutable.HashMap[i18nKey, i18nValues] with mutable.MultiMap[i18nKey, i18nValue]
 
   // Avoid running ReduceComponent multiple times
-  var reduced = false
+  private var reduced = false
 
   override def processOptions(options: List[String], error: String => Unit) {
     for (option <- options) {
@@ -88,6 +90,7 @@ msgstr ""
     if (i18n_tn.isEmpty)  i18n_tn  = Seq("tn")
     if (i18n_tc.isEmpty)  i18n_tc  = Seq("tc")
     if (i18n_tcn.isEmpty) i18n_tcn = Seq("tcn")
+
     if (rawPluralForm.isEmpty) rawPluralForm =
       sourceLang.map(lang => PluralForms.LangToForm.getOrElse(lang,
         {
@@ -96,23 +99,22 @@ msgstr ""
           throw new NoSuchElementException(errorMessage)
         }
       ))
-
   }
 
   private object MapComponent extends PluginComponent {
-    val global: Xgettext.this.global.type = Xgettext.this.global
+    override val global: Xgettext.this.global.type = Xgettext.this.global
 
-    val runsAfter = List("refchecks")
+    override val runsAfter = List("refchecks")
 
-    val phaseName = "xgettext-map"
+    override val phaseName = "xgettext-map"
 
-    def newPhase(_prev: Phase) = new MapPhase(_prev)
+    override def newPhase(_prev: Phase) = new MapPhase(_prev)
 
     class MapPhase(prev: Phase) extends StdPhase(prev) {
-      override def name = phaseName
+      override def name: String = phaseName
 
-      def apply(unit: CompilationUnit) {
-        val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
+      override def apply(unit: CompilationUnit) {
+        val shouldExtract = pluginEnabled && !i18n_class.isEmpty
         if (shouldExtract) {
           val i18nType = getTypeFor(i18n_class)
 
@@ -123,20 +125,20 @@ msgstr ""
               val line       = (relPath(pos.source.path), pos.line)
 
               if (i18n_t.contains(methodName)) {
-                val msgid = fixBackslashSingleQuote(list(0).toString)
+                val msgid = fixBackslashSingleQuote(stringConstant(list.head, pos))
                 msgToLines.addBinding((None, msgid, None), line)
               } else if (i18n_tn.contains(methodName)) {
-                val msgid       = fixBackslashSingleQuote(list(0).toString)
-                val msgidPlural = fixBackslashSingleQuote(list(1).toString)
+                val msgid       = fixBackslashSingleQuote(stringConstant(list.head, pos))
+                val msgidPlural = fixBackslashSingleQuote(stringConstant(list(1), pos))
                 msgToLines.addBinding((None, msgid, Some(msgidPlural)), line)
               } else if (i18n_tc.contains(methodName)) {
-                val msgctxt = fixBackslashSingleQuote(list(0).toString)
-                val msgid   = fixBackslashSingleQuote(list(1).toString)
+                val msgctxt = fixBackslashSingleQuote(stringConstant(list.head, pos))
+                val msgid   = fixBackslashSingleQuote(stringConstant(list(1), pos))
                 msgToLines.addBinding((Some(msgctxt), msgid, None), line)
               } else if (i18n_tcn.contains(methodName)) {
-                val msgctxt     = fixBackslashSingleQuote(list(0).toString)
-                val msgid       = fixBackslashSingleQuote(list(1).toString)
-                val msgidPlural = fixBackslashSingleQuote(list(2).toString)
+                val msgctxt     = fixBackslashSingleQuote(stringConstant(list.head, pos))
+                val msgid       = fixBackslashSingleQuote(stringConstant(list(1), pos))
+                val msgidPlural = fixBackslashSingleQuote(stringConstant(list(2), pos))
                 msgToLines.addBinding((Some(msgctxt), msgid, Some(msgidPlural)), line)
               }
             }
@@ -149,6 +151,11 @@ msgstr ""
         val relPath  = absPath.substring(curDir.length)
         val unixPath = relPath.replace("\\", "/")  // Windows uses '\' to separate
         "../../../.." + unixPath  // po files should be put in src/main/resources/i18n directory
+      }
+
+      private def stringConstant(tree: Tree, pos: Position): String = tree match {
+        case Literal(Constant(s: String)) => s.toString
+        case _ => throw new IllegalArgumentException(s"Not a literal constant string: '$tree' at ${pos.source.path} line ${pos.line}")
       }
 
       /**
@@ -165,22 +172,20 @@ msgstr ""
   }
 
   private object ReduceComponent extends PluginComponent {
-    val global: Xgettext.this.global.type = Xgettext.this.global
+    override val global: Xgettext.this.global.type = Xgettext.this.global
 
-    val runsAfter = List("jvm")
+    override val runsAfter = List("jvm")
 
-    val phaseName = "xgettext-reduce"
+    override val phaseName = "xgettext-reduce"
 
-    def newPhase(_prev: Phase) = new ReducePhase(_prev)
+    override def newPhase(_prev: Phase) = new ReducePhase(_prev)
 
     class ReducePhase(prev: Phase) extends StdPhase(prev) {
-      override def name = phaseName
+      override def name: String = phaseName
 
-      def preparePluralForms(pluralForm: String) = s""""Plural-Forms: $pluralForm\\n""""
-
-      def apply(unit: CompilationUnit) {
-        val shouldExtract = !i18n_class.isEmpty && emptyOutputFileExists
-        if (shouldExtract && !reduced) {
+      override def apply(unit: CompilationUnit) {
+        val shouldExtract = pluginEnabled && !reduced && !i18n_class.isEmpty
+        if (shouldExtract) {
           val builder = new StringBuilder(HEADER)
 
           rawPluralForm.map(pluralForm => builder.append(preparePluralForms(pluralForm)))
@@ -189,7 +194,7 @@ msgstr ""
 
           // Sort by key (msgctxto, msgid, msgidPluralo)
           // so that it's easier too see diffs between versions of the .pot/.po file
-          val sortedMsgToLines = msgToLines.toSeq.sortBy { case (k, v) => k }
+          val sortedMsgToLines = msgToLines.toSeq.sortBy(_._1)
 
           for (((msgctxto, msgid, msgidPluralo), lines) <- sortedMsgToLines) {
             val sortedLines = lines.toSeq.sorted
@@ -200,7 +205,7 @@ msgstr ""
             if (msgctxto.isDefined) builder.append("msgctxt " + msgctxto.get + "\n")
             builder.append("msgid " + msgid + "\n")
             msgidPluralo.map { msgidPlural =>
-              builder.append(s"msgid_plural ${msgidPlural}\n")
+              builder.append(s"msgid_plural $msgidPlural\n")
               builder.append("msgstr[0] \"\"" + "\n\n")
             }.getOrElse(builder.append("msgstr \"\"" + "\n\n"))
           }
@@ -213,6 +218,8 @@ msgstr ""
           reduced = true
         }
       }
+
+      private def preparePluralForms(pluralForm: String) = s""""Plural-Forms: $pluralForm\\n""""
     }
   }
 }

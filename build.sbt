@@ -1,17 +1,12 @@
 organization := "tv.cntt"
 name         := "xgettext"
-version      := "1.5-SNAPSHOT"
+version      := "1.5.1-SNAPSHOT"
 
-crossScalaVersions := Seq("2.10.6", "2.11.8")
-scalaVersion       := "2.11.8"
+crossScalaVersions := Seq("2.12.1", "2.11.8", "2.10.6")
+scalaVersion       := "2.12.1"
 
 scalacOptions ++= Seq("-deprecation", "-feature", "-unchecked")
-
-// http://www.scala-sbt.org/release/docs/Detailed-Topics/Java-Sources
-// Avoid problem when this lib is built with Java 7 but the projects that use it
-// are run with Java 6
-// java.lang.UnsupportedClassVersionError: Unsupported major.minor version 51.0
-javacOptions ++= Seq("-source", "1.6", "-target", "1.6")
+javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 libraryDependencies += "org.scala-lang" % "scala-compiler" % scalaVersion.value
 

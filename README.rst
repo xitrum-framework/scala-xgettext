@@ -1,6 +1,6 @@
 .. image:: poedit.png
 
-This is a Scala 2.10 and 2.11 compiler plugin that acts like GNU ``xgettext``
+This is a Scala 2.10, 2.11, and 2.12 compiler plugin that acts like GNU ``xgettext``
 command to extract i18n strings in Scala source code files to `Gettext <http://en.wikipedia.org/wiki/Gettext>`_
 .po file, when you compile the Scala source code files.
 
@@ -73,6 +73,9 @@ If you have more than one placeholder:
   // {0} and {1} are placeholders
   java.text.MessageFormat.format(t("{0} says hello to {1}, then {1} says hello back to {0}"), "Bill", "Hillary")
 
+**Important: The arguments ``singular``, ``plural``, and ``context`` MUST be literal constant string, like in the above
+examples. Otherwise exception will be thrown during compilation.**
+
 Extract i18n strings to .pot file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -90,7 +93,7 @@ If you use `SBT <http://www.scala-sbt.org/>`_, build.sbt should look like this:
 
   ...
   autoCompilerPlugins := true
-  addCompilerPlugin("tv.cntt" %% "xgettext" % "1.4")
+  addCompilerPlugin("tv.cntt" %% "xgettext" % "1.5.0")
   scalacOptions += "-P:xgettext:xitrum.I18n"
   ...
 
@@ -145,7 +148,11 @@ to be explicitly stated.
 ::
 
   scalacOptions ++= "-P:xgettext:sourceLang:en"
-  //or
+
+Or:
+
+::
+
   scalacOptions ++= "-P:xgettext:rawPluralForm:<nplurals=#; formula>"
 
 Using one of these options will cause the template to have a Plural-Forms header.
