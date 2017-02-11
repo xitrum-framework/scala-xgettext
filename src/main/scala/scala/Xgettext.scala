@@ -154,7 +154,7 @@ msgstr ""
       }
 
       private def stringConstant(tree: Tree, pos: Position): String = tree match {
-        case Literal(Constant(s: String)) => s.toString
+        case Literal(Constant(s: String)) => s""""${s}""""
         case _ => throw new IllegalArgumentException(s"Not a literal constant string: '$tree' at ${pos.source.path} line ${pos.line}")
       }
 
