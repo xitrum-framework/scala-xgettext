@@ -1,3 +1,7 @@
+1.5.1:
+* `#18 <https://github.com/xitrum-framework/scala-xgettext/pull/18>`_
+  Fix wrong msgid generation (no quotes)
+
 1.5.0:
 
 * `#17 <https://github.com/xitrum-framework/scala-xgettext/pull/17>`_
