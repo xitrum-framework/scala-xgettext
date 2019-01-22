@@ -74,7 +74,8 @@ If you have more than one placeholder:
   java.text.MessageFormat.format(t("{0} says hello to {1}, then {1} says hello back to {0}"), "Bill", "Hillary")
 
 **Important: The arguments ``singular``, ``plural``, and ``context`` MUST be literal constant string, like in the above
-examples. Otherwise exception will be thrown during compilation.**
+examples. Otherwise exception will be thrown during compilation. Alternatively, one can add the option
+``ignoreNonLiteralStrings:true`` to ignore those cases instead of throwing an exception**
 
 Extract i18n strings to .pot file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

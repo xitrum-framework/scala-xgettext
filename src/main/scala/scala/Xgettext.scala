@@ -50,6 +50,9 @@ msgstr ""
   private var i18n_tc    = Seq.empty[String]
   private var i18n_tcn   = Seq.empty[String]
 
+  // If this option is set to true, non-literal strings are ignored instead of throwing an exception
+  private var ignoreNonLiteralStrings = false
+
   private var rawPluralForm: Option[String] = None
   private var sourceLang:    Option[String] = None
 
@@ -81,6 +84,9 @@ msgstr ""
 
       else if (option.startsWith("rawPluralForm:"))
         rawPluralForm = Option(option.stripPrefix("rawPluralForm:"))
+
+      else if (option.startsWith("ignoreNonLiteralStrings:"))
+        ignoreNonLiteralStrings = option.stripPrefix("ignoreNonLiteralStrings:").toBoolean
 
       else
         i18n_class = option
@@ -125,21 +131,26 @@ msgstr ""
               val line       = (relPath(pos.source.path), pos.line)
 
               if (i18n_t.contains(methodName)) {
-                val msgid = fixBackslashSingleQuote(stringConstant(list.head, pos))
-                msgToLines.addBinding((None, msgid, None), line)
+                for (msgid <- stringConstant(list.head, pos)){
+                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), None), line)
+                }
               } else if (i18n_tn.contains(methodName)) {
-                val msgid       = fixBackslashSingleQuote(stringConstant(list.head, pos))
-                val msgidPlural = fixBackslashSingleQuote(stringConstant(list(1), pos))
-                msgToLines.addBinding((None, msgid, Some(msgidPlural)), line)
+                for (msgid <- stringConstant(list.head, pos);
+                     msgidPlural <- stringConstant(list(1), pos)) {
+                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), Some(fixBackslashSingleQuote(msgidPlural))), line)
+                }
               } else if (i18n_tc.contains(methodName)) {
-                val msgctxt = fixBackslashSingleQuote(stringConstant(list.head, pos))
-                val msgid   = fixBackslashSingleQuote(stringConstant(list(1), pos))
-                msgToLines.addBinding((Some(msgctxt), msgid, None), line)
+                for (msgctxt <- stringConstant(list.head, pos);
+                     msgid <- stringConstant(list(1), pos)){
+                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid), None), line)
+                }
               } else if (i18n_tcn.contains(methodName)) {
-                val msgctxt     = fixBackslashSingleQuote(stringConstant(list.head, pos))
-                val msgid       = fixBackslashSingleQuote(stringConstant(list(1), pos))
-                val msgidPlural = fixBackslashSingleQuote(stringConstant(list(2), pos))
-                msgToLines.addBinding((Some(msgctxt), msgid, Some(msgidPlural)), line)
+                for (msgctxt <- stringConstant(list.head, pos);
+                     msgid <- stringConstant(list(1), pos);
+                     msgidPlural <- stringConstant(list(2), pos)){
+                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid),
+                    Some(fixBackslashSingleQuote(msgidPlural))), line)
+                }
               }
             }
           }
@@ -153,8 +164,9 @@ msgstr ""
         "../../../.." + unixPath  // po files should be put in src/main/resources/i18n directory
       }
 
-      private def stringConstant(tree: Tree, pos: Position): String = tree match {
-        case Literal(Constant(s: String)) => s""""${s}""""
+      private def stringConstant(tree: Tree, pos: Position): Option[String] = tree match {
+        case Literal(Constant(s: String)) => Some(s""""${s}"""")
+        case _ if ignoreNonLiteralStrings => None
         case _ => throw new IllegalArgumentException(s"Not a literal constant string: '$tree' at ${pos.source.path} line ${pos.line}")
       }
 
