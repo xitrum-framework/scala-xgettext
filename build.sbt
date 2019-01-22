@@ -1,6 +1,6 @@
 organization := "tv.cntt"
 name         := "xgettext"
-version      := "1.5.1-SNAPSHOT"
+version      := "1.5.3-SNAPSHOT"
 
 crossScalaVersions := Seq("2.12.8", "2.11.12")
 scalaVersion       := "2.12.8"
