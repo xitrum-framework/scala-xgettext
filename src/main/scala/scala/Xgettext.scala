@@ -131,29 +131,25 @@ msgstr ""
               val line       = (relPath(pos.source.path), pos.line)
 
               if (i18n_t.contains(methodName)) {
-                stringConstant(list.head, pos) match {
-                  case Some(msgid) =>
-                    msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), None), line)
-                  case _ => // do nothing
+                for (msgid <- stringConstant(list.head, pos)){
+                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), None), line)
                 }
               } else if (i18n_tn.contains(methodName)) {
-                (stringConstant(list.head, pos), stringConstant(list(1), pos)) match {
-                  case (Some(msgid), Some(msgidPlural)) =>
-                    msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), Some(fixBackslashSingleQuote(msgidPlural))), line)
-                  case _ => // do nothing
+                for (msgid <- stringConstant(list.head, pos);
+                     msgidPlural <- stringConstant(list(1), pos)) {
+                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), Some(fixBackslashSingleQuote(msgidPlural))), line)
                 }
               } else if (i18n_tc.contains(methodName)) {
-                (stringConstant(list.head, pos), stringConstant(list(1), pos)) match {
-                  case (Some(msgctxt), Some(msgid)) =>
-                    msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid), None), line)
-                  case _ => // do nothing
+                for (msgctxt <- stringConstant(list.head, pos);
+                     msgid <- stringConstant(list(1), pos)){
+                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid), None), line)
                 }
               } else if (i18n_tcn.contains(methodName)) {
-                (stringConstant(list.head, pos), stringConstant(list(1), pos), stringConstant(list(2), pos)) match {
-                  case (Some(msgctxt), Some(msgid), Some(msgidPlural)) =>
-                    msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid),
-                      Some(fixBackslashSingleQuote(msgidPlural))), line)
-                  case _ => // do nothing
+                for (msgctxt <- stringConstant(list.head, pos);
+                     msgid <- stringConstant(list(1), pos);
+                     msgidPlural <- stringConstant(list(2), pos)){
+                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid),
+                    Some(fixBackslashSingleQuote(msgidPlural))), line)
                 }
               }
             }
