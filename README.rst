@@ -1,6 +1,6 @@
 .. image:: poedit.png
 
-This is a Scala 2.10, 2.11, and 2.12 compiler plugin that acts like GNU ``xgettext``
+This is a Scala 2.11, and 2.12 compiler plugin that acts like GNU ``xgettext``
 command to extract i18n strings in Scala source code files to `Gettext <http://en.wikipedia.org/wiki/Gettext>`_
 .po file, when you compile the Scala source code files.
 

@@ -1,9 +1,8 @@
 package scala
 
-// based on information from https://www.gnu.org/software/gettext/manual/gettext.html#Plural-forms
+// https://www.gnu.org/software/gettext/manual/gettext.html#Plural-forms
 object PluralForms {
-
-  // common plural forms
+  // Common plural forms
   val ONE_FORM = "nplurals=1; plural=0;"
   val TWO_FORMS_SINGULAR_FOR_ONE_ONLY = "nplurals=2; plural=n != 1;"
   val TWO_FORMS_SINGULAR_FOR_ZERO_AND_ONE = "nplurals=2; plural=n>1"
@@ -24,7 +23,6 @@ object PluralForms {
   val SIX_FORMS =
     "nplurals=6; \\\n    plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 \\\n    : n%100>=11 ? 4 : 5;"
 
-  //
   val ToLang = Map(
     ONE_FORM ->
       List("jp", "vi", "kr", "th"),
@@ -52,8 +50,8 @@ object PluralForms {
     SIX_FORMS ->
       List("ar")
     )
+
   val LangToForm: Map[String, String] = ToLang.flatMap {
     case (form, langs) => langs.map( _ -> form)
   }
-
 }

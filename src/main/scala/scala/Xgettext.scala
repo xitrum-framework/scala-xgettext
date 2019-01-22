@@ -10,7 +10,7 @@ import nsc.plugins.Plugin
 import nsc.plugins.PluginComponent
 
 // http://www.scala-lang.org/node/140
-class Xgettext(val global: Global) extends Plugin with ScalaVersionAdapter {
+class Xgettext(val global: Global) extends Plugin {
   import global._
 
   private type i18nKey = (
@@ -28,7 +28,7 @@ class Xgettext(val global: Global) extends Plugin with ScalaVersionAdapter {
 
   override val name        = "xgettext"
   override val description = "This Scala compiler plugin extracts and creates gettext.pot file"
-  override val components: List[PluginComponent] = List[PluginComponent](MapComponent, ReduceComponent)
+  override val components  = List[PluginComponent](MapComponent, ReduceComponent)
 
   private val OUTPUT_FILE = "i18n.pot"
   private val HEADER      = """msgid ""
@@ -122,7 +122,7 @@ msgstr ""
       override def apply(unit: CompilationUnit) {
         val shouldExtract = pluginEnabled && !i18n_class.isEmpty
         if (shouldExtract) {
-          val i18nType = getTypeFor(i18n_class)
+          val i18nType = rootMirror.getClassByName(TypeName(i18n_class)).tpe
 
           for (tree @ Apply(Select(x1, x2), list) <- unit.body) {
             if (x1.tpe <:< i18nType) {
@@ -131,7 +131,7 @@ msgstr ""
               val line       = (relPath(pos.source.path), pos.line)
 
               if (i18n_t.contains(methodName)) {
-                for (msgid <- stringConstant(list.head, pos)){
+                for (msgid <- stringConstant(list.head, pos)) {
                   msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), None), line)
                 }
               } else if (i18n_tn.contains(methodName)) {
@@ -141,13 +141,13 @@ msgstr ""
                 }
               } else if (i18n_tc.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
-                     msgid <- stringConstant(list(1), pos)){
+                     msgid <- stringConstant(list(1), pos)) {
                   msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid), None), line)
                 }
               } else if (i18n_tcn.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
                      msgid <- stringConstant(list(1), pos);
-                     msgidPlural <- stringConstant(list(2), pos)){
+                     msgidPlural <- stringConstant(list(2), pos)) {
                   msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid),
                     Some(fixBackslashSingleQuote(msgidPlural))), line)
                 }
