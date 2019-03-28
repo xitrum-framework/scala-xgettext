@@ -178,12 +178,13 @@ msgstr ""
        * we should change it to just "Don't go".
        */
       private def fixQuotesAndNewlines(s: String): String = {
-        s.replaceAllLiterally("""\'""", "'")
-        s.replaceAllLiterally("""\"""", """"""")
+        val escapedSingleQuotes = s.replaceAllLiterally("""\'""", "'")
+        val escapedDoubleQuotes = escapedSingleQuotes.substring(1, s.length - 1).replaceAllLiterally("\"", "\\\"")
+        val escapedS = escapedSingleQuotes(0) + escapedDoubleQuotes + escapedSingleQuotes(escapedSingleQuotes.length - 1)
 
-        val lines = s.split("\n")
+        val lines = escapedDoubleQuotes.split("\n", -1)
         if(lines.length == 1)
-          return s""""$s"""" // If there are no new lines the potFormat is simply "$string"
+          return escapedS // If there are no new lines the potFormat is simply "$string"
         val literalTwoDoubleQuotes = """""""" // The string literal ""
 
         // multi line format for .pot files:
