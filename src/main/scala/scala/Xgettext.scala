@@ -132,24 +132,24 @@ msgstr ""
 
               if (i18n_t.contains(methodName)) {
                 for (msgid <- stringConstant(list.head, pos)) {
-                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), None), line)
+                  msgToLines.addBinding((None, fixQuotesAndNewlines(msgid), None), line)
                 }
               } else if (i18n_tn.contains(methodName)) {
                 for (msgid <- stringConstant(list.head, pos);
                      msgidPlural <- stringConstant(list(1), pos)) {
-                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), Some(fixBackslashSingleQuote(msgidPlural))), line)
+                  msgToLines.addBinding((None, fixQuotesAndNewlines(msgid), Some(fixQuotesAndNewlines(msgidPlural))), line)
                 }
               } else if (i18n_tc.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
                      msgid <- stringConstant(list(1), pos)) {
-                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid), None), line)
+                  msgToLines.addBinding((Some(fixQuotesAndNewlines(msgctxt)), fixQuotesAndNewlines(msgid), None), line)
                 }
               } else if (i18n_tcn.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
                      msgid <- stringConstant(list(1), pos);
                      msgidPlural <- stringConstant(list(2), pos)) {
-                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid),
-                    Some(fixBackslashSingleQuote(msgidPlural))), line)
+                  msgToLines.addBinding((Some(fixQuotesAndNewlines(msgctxt)), fixQuotesAndNewlines(msgid),
+                    Some(fixQuotesAndNewlines(msgidPlural))), line)
                 }
               }
             }
@@ -177,8 +177,23 @@ msgstr ""
        * Poedit will report "invalid control sequence" for key "Don\'t go", so
        * we should change it to just "Don't go".
        */
-      private def fixBackslashSingleQuote(s: String): String = {
+      private def fixQuotesAndNewlines(s: String): String = {
         s.replaceAllLiterally("""\'""", "'")
+        s.replaceAllLiterally("""\"""", """"""")
+
+        val lines = s.split("\n")
+        if(lines.length == 1)
+          return s""""$s"""" // If there are no new lines the potFormat is simply "$string"
+        val literalTwoDoubleQuotes = """""""" // The string literal ""
+
+        // multi line format for .pot files:
+        // lines == List("bar", "foo") =>
+        // ""
+        // "bar\n"
+        // "foo"
+        val potFormattedNewLines = lines.mkString("\"", "\\n\"\n\"", "\"")
+
+        literalTwoDoubleQuotes + "\n" + potFormattedNewLines
       }
     }
   }
