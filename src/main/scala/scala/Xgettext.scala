@@ -1,8 +1,8 @@
 package scala
 
-import java.io.{BufferedWriter, File, FileWriter}
-import scala.collection.mutable
+import java.io.{BufferedWriter, File, FileWriter, IOException, StringWriter}
 
+import scala.collection.mutable
 import scala.tools.nsc
 import nsc.Global
 import nsc.Phase
@@ -171,29 +171,38 @@ msgstr ""
       }
 
       /**
-       * t("Don't go") will be extracted as "Don\'t go"
-       * (including the surrounding double quotes).
-       *
-       * Poedit will report "invalid control sequence" for key "Don\'t go", so
-       * we should change it to just "Don't go".
+        * t("Don't go") will be extracted as "Don\'t go"
+        * (including the surrounding double quotes).
+        *
+        * Poedit will report "invalid control sequence" for key "Don\'t go", so
+        * we should change it to just "Don't go".
+        *
+        * multi line format for .pot files:
+        * lines == List("bar", "foo") =>
+        * ""
+        * "bar\n"
+        * "foo"
        */
       private def fixQuotesAndNewlines(s: String): String = {
-        val escapedSingleQuotes = s.replaceAllLiterally("""\'""", "'")
+        // Replace \' with '
+        val escapedSingleQuotes = s.replaceAllLiterally("\\'", "'")
+        // Creates a substring with all chars except first and last char. Replace all " with \" in the substring
         val escapedDoubleQuotes = escapedSingleQuotes.substring(1, s.length - 1).replaceAllLiterally("\"", "\\\"")
+        // Concatenate the substring above with first and last char of the escapedSingleQuotes String
         val escapedS = escapedSingleQuotes(0) + escapedDoubleQuotes + escapedSingleQuotes(escapedSingleQuotes.length - 1)
-
+        // Split escapedDoubleQuotes: "bar \n foo" => lines("bar","foo"), lines == lines("bar", "foo")
         val lines = escapedDoubleQuotes.split("\n", -1)
         if(lines.length == 1)
-          return escapedS // If there are no new lines the potFormat is simply "$string"
-        val literalTwoDoubleQuotes = """""""" // The string literal ""
-
-        // multi line format for .pot files:
-        // lines == List("bar", "foo") =>
+          // If there are no new lines the potFormat is simply "$string"
+          return escapedS
+        val literalTwoDoubleQuotes = "\"\"" // The string literal ""
+        // lines("bar", "foo") => "bar\n"
+        //                        "foo"
+        val potFormattedNewLines = lines.mkString("\"", "\\n\"\n\"", "\"")
+        // lines =>
         // ""
         // "bar\n"
         // "foo"
-        val potFormattedNewLines = lines.mkString("\"", "\\n\"\n\"", "\"")
-
         literalTwoDoubleQuotes + "\n" + potFormattedNewLines
       }
     }
