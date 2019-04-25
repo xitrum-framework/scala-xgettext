@@ -196,7 +196,7 @@ msgstr ""
 
       // Replace \' with '
       private val unEscapeSingleQuote: String => String = s => {
-        s.replaceAll("\\'", "'")
+        s.replaceAllLiterally("\\'", "'")
       }
 
       // Replace " with \"
