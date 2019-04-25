@@ -132,24 +132,24 @@ msgstr ""
 
               if (i18n_t.contains(methodName)) {
                 for (msgid <- stringConstant(list.head, pos)) {
-                  msgToLines.addBinding((None, fixQuotesAndNewlines(msgid), None), line)
+                  msgToLines.addBinding((None, formatString(msgid), None), line)
                 }
               } else if (i18n_tn.contains(methodName)) {
                 for (msgid <- stringConstant(list.head, pos);
                      msgidPlural <- stringConstant(list(1), pos)) {
-                  msgToLines.addBinding((None, fixQuotesAndNewlines(msgid), Some(fixQuotesAndNewlines(msgidPlural))), line)
+                  msgToLines.addBinding((None, formatString(msgid), Some(formatString(msgidPlural))), line)
                 }
               } else if (i18n_tc.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
                      msgid <- stringConstant(list(1), pos)) {
-                  msgToLines.addBinding((Some(fixQuotesAndNewlines(msgctxt)), fixQuotesAndNewlines(msgid), None), line)
+                  msgToLines.addBinding((Some(formatString(msgctxt)), formatString(msgid), None), line)
                 }
               } else if (i18n_tcn.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
                      msgid <- stringConstant(list(1), pos);
                      msgidPlural <- stringConstant(list(2), pos)) {
-                  msgToLines.addBinding((Some(fixQuotesAndNewlines(msgctxt)), fixQuotesAndNewlines(msgid),
-                    Some(fixQuotesAndNewlines(msgidPlural))), line)
+                  msgToLines.addBinding((Some(formatString(msgctxt)), formatString(msgid),
+                    Some(formatString(msgidPlural))), line)
                 }
               }
             }
@@ -165,7 +165,7 @@ msgstr ""
       }
 
       private def stringConstant(tree: Tree, pos: Position): Option[String] = tree match {
-        case Literal(Constant(s: String)) => Some(s""""${s}"""")
+        case Literal(Constant(s: String)) => Some(s)
         case _ if ignoreNonLiteralStrings => None
         case _ => throw new IllegalArgumentException(s"Not a literal constant string: '$tree' at ${pos.source.path} line ${pos.line}")
       }
@@ -177,33 +177,46 @@ msgstr ""
         * Poedit will report "invalid control sequence" for key "Don\'t go", so
         * we should change it to just "Don't go".
         *
+        * t("hi "name"") will be extracted as "hi \"name\""
+        *
         * multi line format for .pot files:
         * lines == List("bar", "foo") =>
         * ""
         * "bar\n"
         * "foo"
        */
-      private def fixQuotesAndNewlines(s: String): String = {
-        // Replace \' with '
-        val escapedSingleQuotes = s.replaceAllLiterally("\\'", "'")
-        // Creates a substring with all chars except first and last char. Replace all " with \" in the substring
-        val escapedDoubleQuotes = escapedSingleQuotes.substring(1, s.length - 1).replaceAllLiterally("\"", "\\\"")
-        // Concatenate the substring above with first and last char of the escapedSingleQuotes String
-        val escapedS = escapedSingleQuotes(0) + escapedDoubleQuotes + escapedSingleQuotes(escapedSingleQuotes.length - 1)
-        // Split escapedDoubleQuotes: "bar \n foo" => lines("bar","foo"), lines == lines("bar", "foo")
-        val lines = escapedDoubleQuotes.split("\n", -1)
+      private def formatString(s: String): String = {
+        List(unEscapeSingleQuote, escapeDoubleQuote, mkXgettextNewlines).foldLeft(s)((v, f) => {
+          if (v.contains("Marcus")){
+            println(v)
+          }
+          f(v)
+        })
+      }
+
+      // Replace \' with '
+      private val unEscapeSingleQuote: String => String = s => {
+        s.replaceAll("\\'", "'")
+      }
+
+      // Replace " with \"
+      private val escapeDoubleQuote: String => String = s => {
+        s.replaceAllLiterally("\"", "\\\"")
+      }
+
+      // bar\nfoo =>
+      // ""
+      // "bar\n"
+      // "foo"
+      private val mkXgettextNewlines: String => String = s => {
+        val lines = s.split("\n")
         if(lines.length == 1)
-          // If there are no new lines the potFormat is simply "$string"
-          return escapedS
-        val literalTwoDoubleQuotes = "\"\"" // The string literal ""
-        // lines("bar", "foo") => "bar\n"
-        //                        "foo"
-        val potFormattedNewLines = lines.mkString("\"", "\\n\"\n\"", "\"")
-        // lines =>
-        // ""
-        // "bar\n"
-        // "foo"
-        literalTwoDoubleQuotes + "\n" + potFormattedNewLines
+          s""""$s""""
+        else {
+          val twoDoubleQuotes = "\"\""
+          val potFormattedNewlines = lines.mkString("\"", "\\n\"\n\"", "\"")
+          twoDoubleQuotes + "\n" + potFormattedNewlines
+        }
       }
     }
   }
