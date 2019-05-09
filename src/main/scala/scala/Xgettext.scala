@@ -186,12 +186,7 @@ msgstr ""
         * "foo"
        */
       private def formatString(s: String): String = {
-        List(unEscapeSingleQuote, escapeDoubleQuote, mkXgettextNewlines).foldLeft(s)((v, f) => {
-          if (v.contains("Marcus")){
-            println(v)
-          }
-          f(v)
-        })
+        List(unEscapeSingleQuote, escapeDoubleQuote, mkXgettextNewlines).foldLeft(s)((v, f) => f(v))
       }
 
       // Replace \' with '
