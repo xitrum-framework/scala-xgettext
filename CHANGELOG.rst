@@ -1,3 +1,11 @@
+1.5.3:
+* `#21 <https://github.com/xitrum-framework/scala-xgettext/pull/21>`_
+  Handle double quotes and newlines
+
+1.5.2:
+* `#19 <https://github.com/xitrum-framework/scala-xgettext/pull/19>`_
+  Add option to ignore non-literal-constant strings instead of throwing an Exception
+
 1.5.1:
 * `#18 <https://github.com/xitrum-framework/scala-xgettext/pull/18>`_
   Fix wrong msgid generation (no quotes)
