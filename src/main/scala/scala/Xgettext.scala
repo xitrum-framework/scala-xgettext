@@ -1,8 +1,8 @@
 package scala
 
-import java.io.{BufferedWriter, File, FileWriter}
-import scala.collection.mutable
+import java.io.{BufferedWriter, File, FileWriter, IOException, StringWriter}
 
+import scala.collection.mutable
 import scala.tools.nsc
 import nsc.Global
 import nsc.Phase
@@ -132,24 +132,24 @@ msgstr ""
 
               if (i18n_t.contains(methodName)) {
                 for (msgid <- stringConstant(list.head, pos)) {
-                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), None), line)
+                  msgToLines.addBinding((None, formatString(msgid), None), line)
                 }
               } else if (i18n_tn.contains(methodName)) {
                 for (msgid <- stringConstant(list.head, pos);
                      msgidPlural <- stringConstant(list(1), pos)) {
-                  msgToLines.addBinding((None, fixBackslashSingleQuote(msgid), Some(fixBackslashSingleQuote(msgidPlural))), line)
+                  msgToLines.addBinding((None, formatString(msgid), Some(formatString(msgidPlural))), line)
                 }
               } else if (i18n_tc.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
                      msgid <- stringConstant(list(1), pos)) {
-                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid), None), line)
+                  msgToLines.addBinding((Some(formatString(msgctxt)), formatString(msgid), None), line)
                 }
               } else if (i18n_tcn.contains(methodName)) {
                 for (msgctxt <- stringConstant(list.head, pos);
                      msgid <- stringConstant(list(1), pos);
                      msgidPlural <- stringConstant(list(2), pos)) {
-                  msgToLines.addBinding((Some(fixBackslashSingleQuote(msgctxt)), fixBackslashSingleQuote(msgid),
-                    Some(fixBackslashSingleQuote(msgidPlural))), line)
+                  msgToLines.addBinding((Some(formatString(msgctxt)), formatString(msgid),
+                    Some(formatString(msgidPlural))), line)
                 }
               }
             }
@@ -165,20 +165,53 @@ msgstr ""
       }
 
       private def stringConstant(tree: Tree, pos: Position): Option[String] = tree match {
-        case Literal(Constant(s: String)) => Some(s""""${s}"""")
+        case Literal(Constant(s: String)) => Some(s)
         case _ if ignoreNonLiteralStrings => None
         case _ => throw new IllegalArgumentException(s"Not a literal constant string: '$tree' at ${pos.source.path} line ${pos.line}")
       }
 
       /**
-       * t("Don't go") will be extracted as "Don\'t go"
-       * (including the surrounding double quotes).
-       *
-       * Poedit will report "invalid control sequence" for key "Don\'t go", so
-       * we should change it to just "Don't go".
+        * t("Don't go") will be extracted as "Don\'t go"
+        * (including the surrounding double quotes).
+        *
+        * Poedit will report "invalid control sequence" for key "Don\'t go", so
+        * we should change it to just "Don't go".
+        *
+        * t("hi "name"") will be extracted as "hi \"name\""
+        *
+        * multi line format for .pot files:
+        * lines == List("bar", "foo") =>
+        * ""
+        * "bar\n"
+        * "foo"
        */
-      private def fixBackslashSingleQuote(s: String): String = {
-        s.replaceAllLiterally("""\'""", "'")
+      private def formatString(s: String): String = {
+        List(unEscapeSingleQuote, escapeDoubleQuote, mkXgettextNewlines).foldLeft(s)((v, f) => f(v))
+      }
+
+      // Replace \' with '
+      private val unEscapeSingleQuote: String => String = s => {
+        s.replaceAllLiterally("\\'", "'")
+      }
+
+      // Replace " with \"
+      private val escapeDoubleQuote: String => String = s => {
+        s.replaceAllLiterally("\"", "\\\"")
+      }
+
+      // bar\nfoo =>
+      // ""
+      // "bar\n"
+      // "foo"
+      private val mkXgettextNewlines: String => String = s => {
+        val lines = s.split("\n")
+        if(lines.length == 1)
+          s""""$s""""
+        else {
+          val twoDoubleQuotes = "\"\""
+          val potFormattedNewlines = lines.mkString("\"", "\\n\"\n\"", "\"")
+          twoDoubleQuotes + "\n" + potFormattedNewlines
+        }
       }
     }
   }
