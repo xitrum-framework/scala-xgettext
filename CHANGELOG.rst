@@ -1,3 +1,7 @@
+1.5.4:
+* `#23 and #24 <https://github.com/xitrum-framework/scala-xgettext/pull/23>`_
+  Support Scala 2.13 and 2.12 (drop 2.11)
+
 1.5.3:
 * `#21 <https://github.com/xitrum-framework/scala-xgettext/pull/21>`_
   Handle double quotes and newlines

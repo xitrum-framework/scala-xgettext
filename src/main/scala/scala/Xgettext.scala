@@ -1,6 +1,6 @@
 package scala
 
-import java.io.{BufferedWriter, File, FileWriter, IOException, StringWriter}
+import java.io.{BufferedWriter, File, FileWriter}
 
 import scala.collection.mutable
 import scala.tools.nsc
@@ -28,7 +28,7 @@ class Xgettext(val global: Global) extends Plugin {
 
   override val name        = "xgettext"
   override val description = "This Scala compiler plugin extracts and creates gettext.pot file"
-  override val components  = List[PluginComponent](MapComponent, ReduceComponent)
+  override val components: List[PluginComponent] = List[PluginComponent](MapComponent, ReduceComponent)
 
   private val OUTPUT_FILE = "i18n.pot"
   private val HEADER      = """msgid ""
@@ -65,7 +65,7 @@ msgstr ""
   // Avoid running ReduceComponent multiple times
   private var reduced = false
 
-  override def processOptions(options: List[String], error: String => Unit) {
+  override def processOptions(options: List[String], error: String => Unit): Unit = {
     for (option <- options) {
       if (option.startsWith("t:"))
         i18n_t   +:= option.stripPrefix("t:")
@@ -119,7 +119,7 @@ msgstr ""
     class MapPhase(prev: Phase) extends StdPhase(prev) {
       override def name: String = phaseName
 
-      override def apply(unit: CompilationUnit) {
+      override def apply(unit: CompilationUnit): Unit = {
         val shouldExtract = pluginEnabled && !i18n_class.isEmpty
         if (shouldExtract) {
           val i18nType = rootMirror.getClassByName(TypeName(i18n_class)).tpe
@@ -228,7 +228,7 @@ msgstr ""
     class ReducePhase(prev: Phase) extends StdPhase(prev) {
       override def name: String = phaseName
 
-      override def apply(unit: CompilationUnit) {
+      override def apply(unit: CompilationUnit): Unit = {
         val shouldExtract = pluginEnabled && !reduced && !i18n_class.isEmpty
         if (shouldExtract) {
           val builder = new StringBuilder(HEADER)
